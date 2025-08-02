@@ -70,7 +70,7 @@ All colors MUST be HSL.
   /* Custom 5-video layout */
   .five-video-layout {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1fr 1fr; /* Changed from 2fr 1fr to make right side equal to left */
     gap: 2px;
     height: 400px;
   }
