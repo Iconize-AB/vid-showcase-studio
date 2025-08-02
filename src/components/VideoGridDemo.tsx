@@ -14,7 +14,8 @@ const sampleVideos: VideoItem[] = [
     subtitle: 'Medtech | XXX Company',
     tag: {
       text: 'End-Customer training',
-      color: 'blue'
+      color: 'blue',
+      backgroundColor: '#3B82F6' // Custom blue color
     }
   },
   {
@@ -25,7 +26,8 @@ const sampleVideos: VideoItem[] = [
     subtitle: 'Medtech | XXXX',
     tag: {
       text: 'Share content with partners',
-      color: 'green'
+      color: 'green',
+      backgroundColor: '#10B981' // Custom green color
     }
   },
   {
@@ -36,7 +38,8 @@ const sampleVideos: VideoItem[] = [
     subtitle: 'Medtech | XXX',
     tag: {
       text: 'Share content with customers',
-      color: 'red'
+      color: 'red',
+      backgroundColor: '#EF4444' // Custom red color
     }
   },
   {
@@ -47,7 +50,8 @@ const sampleVideos: VideoItem[] = [
     subtitle: 'Medtech | XXX AI',
     tag: {
       text: 'Share content with customers',
-      color: 'red'
+      color: 'red',
+      backgroundColor: '#DC2626' // Slightly different red
     }
   },
   {
@@ -58,7 +62,8 @@ const sampleVideos: VideoItem[] = [
     subtitle: 'Audio&Video | XXX',
     tag: {
       text: 'Partner Management',
-      color: 'purple'
+      color: 'purple',
+      backgroundColor: '#8B5CF6' // Custom purple color
     }
   }
 ];

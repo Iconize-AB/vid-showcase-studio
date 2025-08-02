@@ -12,6 +12,7 @@ export interface VideoItem {
   tag: {
     text: string;
     color: 'blue' | 'green' | 'red' | 'purple' | 'orange' | 'yellow';
+    backgroundColor?: string; // Custom background color for tag
   };
 }
 
@@ -27,15 +28,15 @@ const getGridLayout = (count: number, layout?: number) => {
   
   switch (targetLayout) {
     case 2:
-      return 'grid-cols-1 md:grid-cols-2';
+      return 'grid-cols-1 md:grid-cols-2 gap-0.5';
     case 3:
-      return 'grid-cols-1 md:grid-cols-3';
+      return 'grid-cols-1 md:grid-cols-3 gap-0.5';
     case 4:
-      return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2';
+      return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-0.5';
     case 5:
-      return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5';
+      return 'five-video-layout';
     default:
-      return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+      return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0.5';
   }
 };
 
@@ -43,17 +44,17 @@ const VideoThumbnail: React.FC<{
   video: VideoItem;
   onPlay: (video: VideoItem) => void;
   layout: number;
-}> = ({ video, onPlay, layout }) => {
-  const isLargeLayout = layout >= 4;
+  isMainVideo?: boolean;
+}> = ({ video, onPlay, layout, isMainVideo = false }) => {
+  const aspectClass = isMainVideo || layout >= 4 ? "aspect-square" : "aspect-[4/3]";
   
   return (
     <div
       className={cn(
-        "relative group cursor-pointer overflow-hidden rounded-lg",
+        "relative group cursor-pointer overflow-hidden", // Removed rounded corners
         "transition-all duration-300 ease-out",
-        "shadow-lg hover:shadow-xl",
-        "transform hover:scale-[1.02]",
-        isLargeLayout ? "aspect-video" : "aspect-[4/3]"
+        "transform hover:scale-[1.01]",
+        aspectClass
       )}
       onClick={() => onPlay(video)}
     >
@@ -66,13 +67,14 @@ const VideoThumbnail: React.FC<{
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all duration-300" />
       
-      {/* Tag */}
+      {/* Tag with custom background and 2px rounded corners */}
       <div className="absolute top-3 left-3">
         <span
-          className={cn(
-            "px-3 py-1 rounded-full text-white font-medium text-xs",
-            `bg-video-tag-${video.tag.color}`
-          )}
+          className="px-3 py-1 text-white font-medium text-xs"
+          style={{
+            backgroundColor: video.tag.backgroundColor || `hsl(var(--video-tag-${video.tag.color}))`,
+            borderRadius: '2px'
+          }}
         >
           {video.tag.text}
         </span>
@@ -100,6 +102,53 @@ const VideoThumbnail: React.FC<{
   );
 };
 
+const FiveVideoLayout: React.FC<{
+  videos: VideoItem[];
+  onPlay: (video: VideoItem) => void;
+}> = ({ videos, onPlay }) => {
+  return (
+    <div className="five-video-layout">
+      {/* Main large video */}
+      <div className="main-video">
+        <VideoThumbnail
+          video={videos[0]}
+          onPlay={onPlay}
+          layout={5}
+          isMainVideo={true}
+        />
+      </div>
+      
+      {/* Small videos in 2x2 grid */}
+      <div className="small-videos">
+        <div className="small-video-row">
+          <VideoThumbnail
+            video={videos[1]}
+            onPlay={onPlay}
+            layout={5}
+          />
+          <VideoThumbnail
+            video={videos[2]}
+            onPlay={onPlay}
+            layout={5}
+          />
+        </div>
+        <div className="small-video-row">
+          <VideoThumbnail
+            video={videos[3]}
+            onPlay={onPlay}
+            layout={5}
+          />
+          <VideoThumbnail
+            video={videos[4]}
+            onPlay={onPlay}
+            layout={5}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const VideoModal: React.FC<{
   video: VideoItem | null;
   isOpen: boolean;
@@ -119,7 +168,7 @@ const VideoModal: React.FC<{
           </button>
           <iframe
             src={video.url}
-            className="w-full h-full rounded-lg"
+            className="w-full h-full"
             allowFullScreen
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           />
@@ -137,7 +186,7 @@ const InlineVideoPlayer: React.FC<{
 
   return (
     <div className="mt-6 relative">
-      <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+      <div className="relative aspect-video bg-black overflow-hidden"> {/* Removed rounded corners */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-10 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition-colors"
@@ -176,12 +225,36 @@ export const VideoGrid: React.FC<VideoGridProps> = ({
     setIsModalOpen(false);
   };
 
-  const gridLayout = getGridLayout(videos.length, layout);
   const actualLayout = layout || videos.length;
+  const gridLayout = getGridLayout(videos.length, layout);
+
+  // Special handling for 5-video layout
+  if (actualLayout === 5 && videos.length >= 5) {
+    return (
+      <div className={cn("w-full", className)}>
+        <FiveVideoLayout videos={videos} onPlay={handleVideoPlay} />
+
+        {playMode === 'modal' && (
+          <VideoModal
+            video={selectedVideo}
+            isOpen={isModalOpen}
+            onClose={handleClose}
+          />
+        )}
+
+        {playMode === 'inline' && (
+          <InlineVideoPlayer
+            video={selectedVideo}
+            onClose={handleClose}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={cn("w-full", className)}>
-      <div className={cn("grid gap-4", gridLayout)}>
+      <div className={cn("grid", gridLayout)}>
         {videos.slice(0, layout || videos.length).map((video) => (
           <VideoThumbnail
             key={video.id}
