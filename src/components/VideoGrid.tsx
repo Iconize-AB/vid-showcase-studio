@@ -45,8 +45,31 @@ const VideoThumbnail: React.FC<{
   onPlay: (video: VideoItem) => void;
   layout: number;
   isMainVideo?: boolean;
-}> = ({ video, onPlay, layout, isMainVideo = false }) => {
+  isPlaying?: boolean;
+  playMode?: 'modal' | 'inline';
+  onClose?: () => void;
+}> = ({ video, onPlay, layout, isMainVideo = false, isPlaying = false, playMode = 'modal', onClose }) => {
   const aspectClass = isMainVideo || layout >= 4 ? "aspect-square" : "aspect-[4/3]";
+  
+  // If playing inline, show the video player instead of thumbnail
+  if (isPlaying && playMode === 'inline') {
+    return (
+      <div className={cn("relative overflow-hidden", aspectClass)}>
+        <iframe
+          src={video.url}
+          className="w-full h-full"
+          allowFullScreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        />
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 z-10 w-6 h-6 bg-black/70 hover:bg-black/90 rounded-full flex items-center justify-center transition-colors"
+        >
+          <X className="w-3 h-3 text-white" />
+        </button>
+      </div>
+    );
+  }
   
   return (
     <div
@@ -105,7 +128,10 @@ const VideoThumbnail: React.FC<{
 const FiveVideoLayout: React.FC<{
   videos: VideoItem[];
   onPlay: (video: VideoItem) => void;
-}> = ({ videos, onPlay }) => {
+  selectedVideo: VideoItem | null;
+  playMode: 'modal' | 'inline';
+  onClose: () => void;
+}> = ({ videos, onPlay, selectedVideo, playMode, onClose }) => {
   return (
     <div className="five-video-layout">
       {/* Main large video */}
@@ -115,6 +141,9 @@ const FiveVideoLayout: React.FC<{
           onPlay={onPlay}
           layout={5}
           isMainVideo={true}
+          isPlaying={selectedVideo?.id === videos[0].id}
+          playMode={playMode}
+          onClose={onClose}
         />
       </div>
       
@@ -125,11 +154,17 @@ const FiveVideoLayout: React.FC<{
             video={videos[1]}
             onPlay={onPlay}
             layout={5}
+            isPlaying={selectedVideo?.id === videos[1].id}
+            playMode={playMode}
+            onClose={onClose}
           />
           <VideoThumbnail
             video={videos[2]}
             onPlay={onPlay}
             layout={5}
+            isPlaying={selectedVideo?.id === videos[2].id}
+            playMode={playMode}
+            onClose={onClose}
           />
         </div>
         <div className="small-video-row">
@@ -137,11 +172,17 @@ const FiveVideoLayout: React.FC<{
             video={videos[3]}
             onPlay={onPlay}
             layout={5}
+            isPlaying={selectedVideo?.id === videos[3].id}
+            playMode={playMode}
+            onClose={onClose}
           />
           <VideoThumbnail
             video={videos[4]}
             onPlay={onPlay}
             layout={5}
+            isPlaying={selectedVideo?.id === videos[4].id}
+            playMode={playMode}
+            onClose={onClose}
           />
         </div>
       </div>
@@ -178,32 +219,6 @@ const VideoModal: React.FC<{
   );
 };
 
-const InlineVideoPlayer: React.FC<{
-  video: VideoItem | null;
-  onClose: () => void;
-}> = ({ video, onClose }) => {
-  if (!video) return null;
-
-  return (
-    <div className="mt-6 relative">
-      <div className="relative aspect-video bg-black overflow-hidden"> {/* Removed rounded corners */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition-colors"
-        >
-          <X className="w-4 h-4 text-white" />
-        </button>
-        <iframe
-          src={video.url}
-          className="w-full h-full"
-          allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        />
-      </div>
-    </div>
-  );
-};
-
 export const VideoGrid: React.FC<VideoGridProps> = ({
   videos,
   layout,
@@ -232,19 +247,18 @@ export const VideoGrid: React.FC<VideoGridProps> = ({
   if (actualLayout === 5 && videos.length >= 5) {
     return (
       <div className={cn("w-full", className)}>
-        <FiveVideoLayout videos={videos} onPlay={handleVideoPlay} />
+        <FiveVideoLayout 
+          videos={videos} 
+          onPlay={handleVideoPlay} 
+          selectedVideo={selectedVideo}
+          playMode={playMode}
+          onClose={handleClose}
+        />
 
         {playMode === 'modal' && (
           <VideoModal
             video={selectedVideo}
             isOpen={isModalOpen}
-            onClose={handleClose}
-          />
-        )}
-
-        {playMode === 'inline' && (
-          <InlineVideoPlayer
-            video={selectedVideo}
             onClose={handleClose}
           />
         )}
@@ -261,6 +275,9 @@ export const VideoGrid: React.FC<VideoGridProps> = ({
             video={video}
             onPlay={handleVideoPlay}
             layout={actualLayout}
+            isPlaying={selectedVideo?.id === video.id}
+            playMode={playMode}
+            onClose={handleClose}
           />
         ))}
       </div>
@@ -269,13 +286,6 @@ export const VideoGrid: React.FC<VideoGridProps> = ({
         <VideoModal
           video={selectedVideo}
           isOpen={isModalOpen}
-          onClose={handleClose}
-        />
-      )}
-
-      {playMode === 'inline' && (
-        <InlineVideoPlayer
-          video={selectedVideo}
           onClose={handleClose}
         />
       )}
