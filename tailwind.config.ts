@@ -61,6 +61,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				'video-tag': {
+					blue: 'hsl(var(--video-tag-blue))',
+					green: 'hsl(var(--video-tag-green))',
+					red: 'hsl(var(--video-tag-red))',
+					purple: 'hsl(var(--video-tag-purple))',
+					orange: 'hsl(var(--video-tag-orange))',
+					yellow: 'hsl(var(--video-tag-yellow))'
 				}
 			},
 			borderRadius: {
